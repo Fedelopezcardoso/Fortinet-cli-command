@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fortinet CLI Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --panel: #0f1628;
+    --border: #1e3a5f;
+    --accent: #00d4ff;
+    --accent2: #ff6b2b;
+    --green: #00ff88;
+    --text: #c8d8e8;
+    --text-dim: #5a7a9a;
+    --input-bg: #080c18;
+    --section-a: #001a2e;
+    --section-b: #1a0e00;
+    --section-c: #001a0e;
+    --section-d: #1a001a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(0,100,180,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(0,212,255,0.06) 0%, transparent 50%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  header h1 {
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(0,212,255,0.4);
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-top: 6px;
+    letter-spacing: 0.08em;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    max-width: 1300px;
+    margin: 0 auto 24px;
+  }
+
+  .section {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    background: var(--panel);
+  }
+
+  .section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .section-src::before  { background: linear-gradient(90deg, var(--accent), transparent); }
+  .section-dst::before  { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .section-port::before { background: linear-gradient(90deg, var(--green), transparent); }
+  .section-acl::before  { background: linear-gradient(90deg, #c084fc, transparent); }
+
+  .section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-src   .section-title { color: var(--accent); }
+  .section-dst   .section-title { color: var(--accent2); }
+  .section-port  .section-title { color: var(--green); }
+  .section-acl   .section-title { color: #c084fc; }
+
+  .badge {
+    font-size: 0.6rem;
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.06);
+    letter-spacing: 0.1em;
+  }
+
+  label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+    letter-spacing: 0.06em;
+  }
+
+  .field { margin-bottom: 14px; }
+
+  input[type="text"], select {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem;
+    padding: 8px 11px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.08);
+  }
+
+  select option { background: #0f1628; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  /* preview area */
+  .preview-wrap {
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  .preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .preview-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .btn-copy {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-copy:hover {
+    background: rgba(0,212,255,0.2);
+    box-shadow: 0 0 12px rgba(0,212,255,0.3);
+  }
+
+  .btn-copy.copied {
+    background: rgba(0,255,136,0.1);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  pre#output {
+    background: #050810;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    white-space: pre;
+    overflow-x: auto;
+    color: #aac4d8;
+    min-height: 80px;
+  }
+
+  /* syntax highlight classes */
+  .kw   { color: #00d4ff; }
+  .str  { color: #ffd080; }
+  .cmd  { color: #00ff88; }
+  .cmt  { color: #3a5a7a; }
+  .val  { color: #ff9f6b; }
+
+  .generate-btn {
+    display: block;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto 20px;
+    padding: 14px;
+    background: linear-gradient(90deg, rgba(0,212,255,0.15), rgba(0,255,136,0.08));
+    border: 1px solid var(--accent);
+    border-radius: 7px;
+    color: var(--accent);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .generate-btn:hover {
+    background: linear-gradient(90deg, rgba(0,212,255,0.28), rgba(0,255,136,0.14));
+    box-shadow: 0 0 20px rgba(0,212,255,0.25);
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .section-src  .dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .section-dst  .dot { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+  .section-port .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .section-acl  .dot { background: #c084fc; box-shadow: 0 0 6px #c084fc; }
+
+  .hint {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚙ Fortinet CLI Generator</h1>
+  <p>Completá los campos para generar los comandos FortiOS</p>
+</header>
+
+<!-- ═══════════════════ SECCIÓN ORIGEN IP ═══════════════════ -->
+<div class="grid">
+  <div class="section section-src">
+    <div class="section-title"><span class="dot"></span> Objeto Origen (IP) <span class="badge">firewall address</span></div>
+
+    <div class="field">
+      <label>IP de Origen</label>
+      <input type="text" id="src_ip" placeholder="10.81.23.84" oninput="autoFillSrc()">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Máscara / Prefijo</label>
+        <select id="src_mask" onchange="autoFillSrc()">
+          <option value="/32">/32 — Host (255.255.255.255)</option>
+          <option value="/31">/31 (255.255.255.254)</option>
+          <option value="/30">/30 (255.255.255.252)</option>
+          <option value="/29">/29 (255.255.255.248)</option>
+          <option value="/28">/28 (255.255.255.240)</option>
+          <option value="/27">/27 (255.255.255.224)</option>
+          <option value="/26">/26 (255.255.255.192)</option>
+          <option value="/25">/25 (255.255.255.128)</option>
+          <option value="/24">/24 — Clase C (255.255.255.0)</option>
+          <option value="/23">/23 (255.255.254.0)</option>
+          <option value="/22">/22 (255.255.252.0)</option>
+          <option value="/21">/21 (255.255.248.0)</option>
+          <option value="/20">/20 (255.255.240.0)</option>
+          <option value="/19">/19 (255.255.224.0)</option>
+          <option value="/18">/18 (255.255.192.0)</option>
+          <option value="/17">/17 (255.255.128.0)</option>
+          <option value="/16">/16 — Clase B (255.255.0.0)</option>
+          <option value="/15">/15 (255.254.0.0)</option>
+          <option value="/14">/14 (255.252.0.0)</option>
+          <option value="/13">/13 (255.248.0.0)</option>
+          <option value="/12">/12 (255.240.0.0)</option>
+          <option value="/11">/11 (255.224.0.0)</option>
+          <option value="/10">/10 (255.192.0.0)</option>
+          <option value="/9">/9 (255.128.0.0)</option>
+          <option value="/8">/8 — Clase A (255.0.0.0)</option>
+          <option value="/7">/7 (254.0.0.0)</option>
+          <option value="/6">/6 (252.0.0.0)</option>
+          <option value="/5">/5 (248.0.0.0)</option>
+          <option value="/4">/4 (240.0.0.0)</option>
+          <option value="/3">/3 (224.0.0.0)</option>
+          <option value="/2">/2 (192.0.0.0)</option>
+          <option value="/1">/1 (128.0.0.0)</option>
+          <option value="/0">/0 (0.0.0.0)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tipo de objeto</label>
+        <select id="src_type" onchange="autoFillSrc()">
+          <option value="H">H- (Host)</option>
+          <option value="N">N- (Network)</option>
+          <option value="R">R- (Range)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Nombre del objeto (auto-generado)</label>
+      <input type="text" id="src_name" placeholder="H-10.81.23.84">
+      <div class="hint">Editable manualmente si necesitás otro nombre</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SECCIÓN DESTINO ═══════════════════ -->
+  <div class="section section-dst">
+    <div class="section-title"><span class="dot"></span> Objeto Destino <span class="badge">firewall address</span></div>
+
+    <div class="field">
+      <label>Tipo de destino</label>
+      <select id="dst_type" onchange="toggleDstType()">
+        <option value="fqdn">FQDN</option>
+        <option value="ipmask">IP/Máscara</option>
+        <option value="iprange">IP Range</option>
+      </select>
+    </div>
+
+    <div id="dst_fqdn_fields">
+      <div class="field">
+        <label>FQDN</label>
+        <input type="text" id="dst_fqdn" placeholder="proxy.ejemplo.com.ar" oninput="autoFillDst()">
+      </div>
+      <div class="field">
+        <label>Cache TTL (seg) — predeterminado 300</label>
+        <input type="text" id="dst_ttl" placeholder="300" value="300">
+      </div>
+    </div>
+
+    <div id="dst_ip_fields" style="display:none">
+      <div class="row2">
+        <div class="field">
+          <label>IP Destino</label>
+          <input type="text" id="dst_ip" placeholder="10.0.0.1" oninput="autoFillDst()">
+        </div>
+        <div class="field">
+          <label>Tipo de objeto</label>
+          <select id="dst_obj_type" onchange="autoFillDst()">
+            <option value="H">H- (Host)</option>
+            <option value="N">N- (Network)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Máscara / Prefijo</label>
+        <select id="dst_mask" onchange="autoFillDst()">
+          <option value="/32">/32 — Host (255.255.255.255)</option>
+          <option value="/31">/31 (255.255.255.254)</option>
+          <option value="/30">/30 (255.255.255.252)</option>
+          <option value="/29">/29 (255.255.255.248)</option>
+          <option value="/28">/28 (255.255.255.240)</option>
+          <option value="/27">/27 (255.255.255.224)</option>
+          <option value="/26">/26 (255.255.255.192)</option>
+          <option value="/25">/25 (255.255.255.128)</option>
+          <option value="/24">/24 — Clase C (255.255.255.0)</option>
+          <option value="/23">/23 (255.255.254.0)</option>
+          <option value="/22">/22 (255.255.252.0)</option>
+          <option value="/21">/21 (255.255.248.0)</option>
+          <option value="/20">/20 (255.255.240.0)</option>
+          <option value="/19">/19 (255.255.224.0)</option>
+          <option value="/18">/18 (255.255.192.0)</option>
+          <option value="/17">/17 (255.255.128.0)</option>
+          <option value="/16">/16 — Clase B (255.255.0.0)</option>
+          <option value="/15">/15 (255.254.0.0)</option>
+          <option value="/14">/14 (255.252.0.0)</option>
+          <option value="/13">/13 (255.248.0.0)</option>
+          <option value="/12">/12 (255.240.0.0)</option>
+          <option value="/11">/11 (255.224.0.0)</option>
+          <option value="/10">/10 (255.192.0.0)</option>
+          <option value="/9">/9 (255.128.0.0)</option>
+          <option value="/8">/8 — Clase A (255.0.0.0)</option>
+          <option value="/7">/7 (254.0.0.0)</option>
+          <option value="/6">/6 (252.0.0.0)</option>
+          <option value="/5">/5 (248.0.0.0)</option>
+          <option value="/4">/4 (240.0.0.0)</option>
+          <option value="/3">/3 (224.0.0.0)</option>
+          <option value="/2">/2 (192.0.0.0)</option>
+          <option value="/1">/1 (128.0.0.0)</option>
+          <option value="/0">/0 (0.0.0.0)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="dst_range_fields" style="display:none">
+      <div class="row2">
+        <div class="field">
+          <label>IP Inicio</label>
+          <input type="text" id="dst_range_start" placeholder="10.0.0.1" oninput="autoFillDst()">
+        </div>
+        <div class="field">
+          <label>IP Fin</label>
+          <input type="text" id="dst_range_end" placeholder="10.0.0.254" oninput="autoFillDst()">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Nombre del objeto (auto-generado)</label>
+      <input type="text" id="dst_name" placeholder="proxy-ejemplo">
+      <div class="hint">Editable manualmente</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SECCIÓN PUERTO ═══════════════════ -->
+  <div class="section section-port">
+    <div class="section-title"><span class="dot"></span> Objeto Puerto <span class="badge">firewall service custom</span></div>
+
+    <div class="field">
+      <label>Protocolo</label>
+      <select id="port_proto" onchange="autoFillPort()">
+        <option value="TCP">TCP</option>
+        <option value="UDP">UDP</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Puerto (o rango, ej: 8080 o 8080-8090)</label>
+      <input type="text" id="port_num" placeholder="8080" oninput="autoFillPort()">
+    </div>
+    <div class="field">
+      <label>Nombre del objeto (auto-generado)</label>
+      <input type="text" id="port_name" placeholder="TCP-8080">
+      <div class="hint">Editable manualmente</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SECCIÓN ACL ═══════════════════ -->
+  <div class="section section-acl">
+    <div class="section-title"><span class="dot"></span> Access Control Policy <span class="badge">firewall policy</span></div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Nombre / Referencia</label>
+        <input type="text" id="acl_name" placeholder="[Referencia - ticket]">
+      </div>
+      <div class="field">
+        <label>Acción</label>
+        <select id="acl_action">
+          <option value="accept">accept</option>
+          <option value="deny">deny</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Interfaz Origen</label>
+        <input type="text" id="acl_srcintf" placeholder="[interfaz origen]">
+      </div>
+      <div class="field">
+        <label>Interfaz Destino</label>
+        <input type="text" id="acl_dstintf" placeholder="[interfaz destino]">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Objeto Origen (srcaddr)</label>
+        <input type="text" id="acl_srcaddr" placeholder="(auto desde Origen)">
+        <div class="hint">Se completa solo con el objeto origen</div>
+      </div>
+      <div class="field">
+        <label>Objeto Destino (dstaddr)</label>
+        <input type="text" id="acl_dstaddr" placeholder="(auto desde Destino)">
+        <div class="hint">Se completa solo con el objeto destino</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Servicio/Puerto (service)</label>
+      <input type="text" id="acl_service" placeholder="(auto desde Puerto)">
+      <div class="hint">Se completa solo con el objeto puerto</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BOTÓN GENERAR ═══ -->
+<button class="generate-btn" onclick="generate()">▶ Generar Comandos CLI</button>
+
+<!-- ═══ OUTPUT ═══ -->
+<div class="preview-wrap">
+  <div class="preview-header">
+    <span class="preview-title">// Output CLI — FortiOS</span>
+    <button class="btn-copy" id="copyBtn" onclick="copyOutput()">⎘ Copiar</button>
+  </div>
+  <pre id="output"><span style="color:#3a5a7a">← Completá los campos y presioná "Generar Comandos CLI"</span></pre>
+</div>
+
+<script>
+// ─── Utilidades máscara ───────────────────────────────────────
+const maskMap = {
+  '/32': '255.255.255.255',
+  '/31': '255.255.255.254',
+  '/30': '255.255.255.252',
+  '/29': '255.255.255.248',
+  '/28': '255.255.255.240',
+  '/27': '255.255.255.224',
+  '/26': '255.255.255.192',
+  '/25': '255.255.255.128',
+  '/24': '255.255.255.0',
+  '/23': '255.255.254.0',
+  '/22': '255.255.252.0',
+  '/21': '255.255.248.0',
+  '/20': '255.255.240.0',
+  '/19': '255.255.224.0',
+  '/18': '255.255.192.0',
+  '/17': '255.255.128.0',
+  '/16': '255.255.0.0',
+  '/15': '255.254.0.0',
+  '/14': '255.252.0.0',
+  '/13': '255.248.0.0',
+  '/12': '255.240.0.0',
+  '/11': '255.224.0.0',
+  '/10': '255.192.0.0',
+  '/9' : '255.128.0.0',
+  '/8' : '255.0.0.0',
+  '/7' : '254.0.0.0',
+  '/6' : '252.0.0.0',
+  '/5' : '248.0.0.0',
+  '/4' : '240.0.0.0',
+  '/3' : '224.0.0.0',
+  '/2' : '192.0.0.0',
+  '/1' : '128.0.0.0',
+  '/0' : '0.0.0.0'
+};
+
+function getMask(prefix) {
+  return maskMap[prefix] || '255.255.255.255';
+}
+
+// ─── Auto-fill Origen ────────────────────────────────────────
+function autoFillSrc() {
+  const ip   = v('src_ip').trim();
+  const mask = v('src_mask');
+  const type = v('src_type');
+  if (ip) {
+    const prefix = type === 'H' ? 'H' : type === 'N' ? 'N' : type;
+    const name = type === 'H' ? `H-${ip}` : `${prefix}-${ip}${mask}`;
+    set('src_name', name);
+    set('acl_srcaddr', name);
+  }
+}
+
+// ─── Toggle tipo destino ─────────────────────────────────────
+function toggleDstType() {
+  const t = v('dst_type');
+  show('dst_fqdn_fields',  t === 'fqdn');
+  show('dst_ip_fields',    t === 'ipmask');
+  show('dst_range_fields', t === 'iprange');
+  autoFillDst();
+}
+
+function autoFillDst() {
+  const t = v('dst_type');
+  let name = '';
+  if (t === 'fqdn') {
+    const fqdn = v('dst_fqdn').trim();
+    if (fqdn) name = fqdn.split('.')[0];
+  } else if (t === 'ipmask') {
+    const ip   = v('dst_ip').trim();
+    const m    = v('dst_mask');
+    const type = v('dst_obj_type');
+    if (ip) name = type === 'H' ? `H-${ip}` : `N-${ip}${m}`;
+  } else {
+    const s = v('dst_range_start').trim();
+    const e = v('dst_range_end').trim();
+    if (s && e) name = `R-${s}-${e}`;
+  }
+  if (name) {
+    set('dst_name', name);
+    set('acl_dstaddr', name);
+  }
+}
+
+// ─── Auto-fill Puerto ────────────────────────────────────────
+function autoFillPort() {
+  const proto = v('port_proto');
+  const port  = v('port_num').trim();
+  if (port) {
+    const name = `${proto}-${port}`;
+    set('port_name', name);
+    set('acl_service', name);
+  }
+}
+
+// ─── Generar ─────────────────────────────────────────────────
+function generate() {
+  // Sincroniamos los auto-fills por si el usuario no disparó oninput
+  autoFillSrc();
+  autoFillDst();
+  autoFillPort();
+
+  const srcIp    = v('src_ip').trim();
+  const srcMask  = v('src_mask');
+  const srcType  = v('src_type');
+  const srcName  = v('src_name').trim() || (srcType === 'H' ? `H-${srcIp}` : `N-${srcIp}${srcMask}`);
+
+  const dstType  = v('dst_type');
+  const dstName  = v('dst_name').trim();
+  const dstFqdn  = v('dst_fqdn').trim();
+  const dstTtl   = v('dst_ttl').trim() || '300';
+  const dstIp    = v('dst_ip').trim();
+  const dstMask  = v('dst_mask');
+  const dstRangeS= v('dst_range_start').trim();
+  const dstRangeE= v('dst_range_end').trim();
+
+  const portProto= v('port_proto');
+  const portNum  = v('port_num').trim();
+  const portName = v('port_name').trim() || `${portProto}-${portNum}`;
+
+  const aclName   = v('acl_name').trim();
+  const aclAction = v('acl_action');
+  const srcIntf   = v('acl_srcintf').trim();
+  const dstIntf   = v('acl_dstintf').trim();
+  const srcAddr   = v('acl_srcaddr').trim() || srcName;
+  const dstAddr   = v('acl_dstaddr').trim() || dstName;
+  const aclSvc    = v('acl_service').trim()  || portName;
+
+  // ── Bloque 1: Origen ──
+  let b1 = '';
+  b1 += `config firewall address\n`;
+  b1 += `    edit "${srcName}"\n`;
+  b1 += `        set subnet ${srcIp} ${getMask(srcMask)}\n`;
+  b1 += `    next\nend`;
+
+  // ── Bloque 2: Destino ──
+  let b2 = '';
+  b2 += `config firewall address\n`;
+  b2 += `    edit "${dstName}"\n`;
+
+  if (dstType === 'fqdn') {
+    b2 += `        set type fqdn\n`;
+    b2 += `        set fqdn "${dstFqdn}"\n`;
+    b2 += `        set cache-ttl ${dstTtl}\n`;
+  } else if (dstType === 'ipmask') {
+    b2 += `        set subnet ${dstIp} ${getMask(dstMask)}\n`;
+  } else {
+    b2 += `        set type iprange\n`;
+    b2 += `        set start-ip ${dstRangeS}\n`;
+    b2 += `        set end-ip ${dstRangeE}\n`;
+  }
+
+  b2 += `    next\nend`;
+
+  // ── Bloque 3: Puerto ──
+  let b3 = '';
+  b3 += `config firewall service custom\n`;
+  b3 += `    edit "${portName}"\n`;
+  if (portProto === 'TCP') {
+    b3 += `        set tcp-portrange ${portNum}\n`;
+  } else {
+    b3 += `        set udp-portrange ${portNum}\n`;
+  }
+  b3 += `    next\nend`;
+
+  // ── Bloque 4: ACL ──
+  let b4 = '';
+  b4 += `config firewall policy\n`;
+  b4 += `    edit 0\n`;
+  b4 += `        set name "${aclName}"\n`;
+  b4 += `        set srcintf "${srcIntf}"\n`;
+  b4 += `        set dstintf "${dstIntf}"\n`;
+  b4 += `        set action ${aclAction}\n`;
+  b4 += `        set srcaddr "${srcAddr}"\n`;
+  b4 += `        set dstaddr "${dstAddr}"\n`;
+  b4 += `        set schedule "always"\n`;
+  b4 += `        set service "${aclSvc}"\n`;
+  b4 += `        set nat disable\n`;
+  b4 += `        set logtraffic all\n`;
+  b4 += `        set inspection-mode proxy\n`;
+  b4 += `        set ssl-ssh-profile "no-inspection"\n`;
+  b4 += `    next\nend`;
+
+  const separator = '\n' + '─'.repeat(50) + '\n';
+
+  const raw = [
+    `# ── OBJETO ORIGEN ──────────────────────────────────\n` + b1,
+    `# ── OBJETO DESTINO ─────────────────────────────────\n` + b2,
+    `# ── OBJETO PUERTO ──────────────────────────────────\n` + b3,
+    `# ── ACCESS CONTROL POLICY ──────────────────────────\n` + b4
+  ].join(separator);
+
+  // Highlight
+  const html = raw
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/(^#.*$)/gm, '<span class="cmt">$1</span>')
+    .replace(/\b(config|edit|set|next|end)\b/g, '<span class="kw">$1</span>')
+    .replace(/"([^"]+)"/g, '<span class="str">"$1"</span>')
+    .replace(/─+/g, '<span class="cmt">$&</span>');
+
+  document.getElementById('output').innerHTML = html;
+
+  // guardamos raw para copiar
+  document.getElementById('output').dataset.raw = raw;
+}
+
+// ─── Copiar ───────────────────────────────────────────────────
+function copyOutput() {
+  const raw = document.getElementById('output').dataset.raw;
+  if (!raw) return;
+  navigator.clipboard.writeText(raw).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '⎘ Copiar'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── Helpers ─────────────────────────────────────────────────
+function v(id) { return document.getElementById(id)?.value ?? ''; }
+function set(id, val) { const el = document.getElementById(id); if (el && !el._edited) el.value = val; }
+function show(id, visible) { document.getElementById(id).style.display = visible ? '' : 'none'; }
+
+// Permitir edición manual sin que se sobreescriba
+document.querySelectorAll('#src_name,#dst_name,#port_name,#acl_srcaddr,#acl_dstaddr,#acl_service').forEach(el => {
+  el.addEventListener('input', () => { el._edited = el.value !== ''; });
+  el.addEventListener('blur',  () => { if (!el.value) el._edited = false; });
+});
+</script>
+</body>
+</html>
